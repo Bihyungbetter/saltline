@@ -30,11 +30,11 @@ export class Room {
   driverOf(p) { return Object.keys(this.drivers).find(car => this.drivers[car] === p); }
   freeCar() { for (let c = 0; c < 4; c++) if (!this.players.some(p => p.car === c)) return c; return -1; }
 
-  // Returns the new player, or null if the room is full.
-  join(send, name) {
+  // Returns the new player, or null if the room is full. slow = a relayed connection that gets half-rate snapshots.
+  join(send, name, slow = false) {
     const car = this.freeCar();
     if (car < 0) { try { send(JSON.stringify({ t: 'full' })); } catch { /* ignore */ } return null; }
-    const p = { send, id: nextId++, name: String(name || '').slice(0, 16), car, input: { steer: 0, gas: 0, brake: 0, boost: false } };
+    const p = { send, slow, id: nextId++, name: String(name || '').slice(0, 16), car, input: { steer: 0, gas: 0, brake: 0, boost: false } };
     if (!p.name) p.name = 'Pilot ' + p.id;
     this.players.push(p); this.lobby();
     return p;
@@ -88,7 +88,10 @@ export class Room {
     while (n--) {
       this.race.tick(inputs);
       for (const car in this.drivers) this.drivers[car].input.boost = false; // boost is a one-tick edge
-      if (++this.sent % SEND_EVERY === 0) this.all(this.race.snapshot());
+      if (++this.sent % SEND_EVERY === 0) {
+        const snap = this.race.snapshot();
+        for (const p of this.players) if (!p.slow || this.sent % (SEND_EVERY * 2) === 0) this.send(p, snap);
+      }
     }
     if (this.race.allDone) { this.all(this.race.snapshot()); this.phase = 'lobby'; this.drivers = {}; this.lobby(); }
   }

@@ -1,7 +1,8 @@
 // End-to-end smoke test: two browser tabs join one room and race each other.
 //   1. node server.mjs 8090
 //   2. two Chromes, one per player, so neither tab is throttled in the background:
-//      chrome --headless=new --remote-debugging-port=9334 --user-data-dir=<a> about:blank   (and 9335 with <b>)
+//      chrome --headless=new --mute-audio --remote-debugging-port=9334 --user-data-dir=<a> about:blank   (and 9335 with <b>)
+//      Always pass --mute-audio: the game synthesises engine noise and beeps, and headless Chrome still plays them out loud.
 //   3. node tools/smoke.mjs 9334,9335 http://127.0.0.1:8090 out-dir
 import { writeFileSync, mkdirSync } from 'node:fs';
 const [ports, base, out] = [process.argv[2].split(','), process.argv[3], process.argv[4] || '.'];
@@ -40,8 +41,10 @@ async function ready(t, name) { // wait until the page has built its scene and j
   while (Date.now() - started < 40000) { if (await t.eval(`!!(window.saltline && saltline.players)`) === true) { console.log(`tab ${name} ready after ${((Date.now() - started) / 1000).toFixed(1)} s`); return; } await sleep(250); }
   fail(`tab ${name} never joined the lobby`);
 }
-const a = await tab(`${base}/?room=${room}`, ports[0]); await ready(a, 'A');
-const b = await tab(`${base}/?room=${room}`, ports[1] || ports[0]); await ready(b, 'B'); await sleep(1500);
+const extra = process.argv[5] || '';   // e.g. "&relay=1" to force the relay transport on the static build
+const a = await tab(`${base}/?room=${room}${extra}`, ports[0]); await ready(a, 'A');
+const b = await tab(`${base}/?room=${room}${extra}`, ports[1] || ports[0]); await ready(b, 'B'); await sleep(1500);
+console.log('connection A:', await a.eval(`document.getElementById('room').textContent`), '| B:', await b.eval(`document.getElementById('room').textContent`));
 const la = JSON.parse(await a.eval(probe)), lb = JSON.parse(await b.eval(probe));
 console.log('lobby A', JSON.stringify(la)); console.log('lobby B', JSON.stringify(lb));
 if (la.players !== 2 || lb.players !== 2) fail('both tabs should see two pilots');

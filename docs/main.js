@@ -125,7 +125,7 @@ const DELAY = 0.06, FIELDS = 18, blended = [0, 1, 2, 3].map(() => new Array(FIEL
 function sample() {
   const last = snaps.at(-1); if (!last) return null;
   if (snaps.length === 1 || offset === null) return { ...last };
-  const target = performance.now() / 1000 + offset - DELAY;
+  const target = performance.now() / 1000 + offset - (net?.slow ? 0.12 : DELAY); // relayed snapshots arrive at half rate and less evenly
   let i = snaps.length - 2; while (i > 0 && snaps[i].t > target) i--;
   const a = snaps[i], b = snaps[i + 1], f = clamp((target - a.t) / Math.max(1e-4, b.t - a.t), 0, 1.6);
   for (let c = 0; c < 4; c++) {
@@ -209,7 +209,7 @@ function loop(now) {
       $('countdown').hidden = state === 'results';
       if (left <= 0 && state === 'countdown') show('race');
     } else $('countdown').hidden = true;
-    if (state === 'race' && now - lastSend > 15) {
+    if (state === 'race' && now - lastSend > (net?.slow ? 32 : 15)) {
       const input = readInput(); lastSend = now;
       send({ t: 'in', s: input.steer, g: input.gas, b: input.brake, x: wantBoost ? 1 : 0 }); wantBoost = false;
     }
@@ -220,7 +220,7 @@ function loop(now) {
 show('lobby');
 requestAnimationFrame(loop);
 connect({ name: stored, track: T, onMessage, onClose: reason => { if ($('fatal').hidden) fatal(reason); }, onStatus: text => { $('note').textContent = text; } })
-  .then(n => { net = n; $('room').textContent = n.room.toUpperCase(); })
+  .then(n => { net = n; $('room').textContent = n.room.toUpperCase() + ({ host: ' · you are hosting', direct: ' · direct connection', relay: ' · relayed connection (some delay)' }[n.mode] || ''); })
   .catch(error => { console.error(error); fatal(error.message || String(error)); });
 
 // Read-only hook used by the automated smoke test.
