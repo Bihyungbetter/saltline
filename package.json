@@ -1,0 +1,14 @@
+{
+  "name": "saltline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.5",
+    "three": "^0.187.0",
+    "ws": "^8.23.0"
+  }
+}

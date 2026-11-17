@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0714">
+<title>Saltline</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0714'/%3E%3Cpath d='M5 21 16 8l11 13-11-5z' fill='%23ff7a3c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./three/build/three.module.js","three/addons/":"./three/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="view" tabindex="0" aria-label="Saltline race view"></canvas>
+
+<section id="lobby" hidden>
+  <header><h1>SALTLINE</h1><p>Four sleds. One flooded salt flat. Dusk.</p></header>
+  <div class="panel">
+    <div class="row top">
+      <label>Pilot name <input id="name" maxlength="16" autocomplete="off" spellcheck="false"></label>
+      <div class="room">Room <b id="room"></b> · <span id="count"></span></div>
+    </div>
+    <div id="cars" class="cars" role="group" aria-label="Choose a sled"></div>
+    <div class="row">
+      <label>Laps <select id="laps"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option></select></label>
+      <button id="launch" class="primary">Launch race</button>
+    </div>
+    <p id="note" class="note" role="status"></p>
+    <p class="share"><span id="share"></span> <button id="copy" hidden>Copy invite link</button></p>
+    <p class="keys"><kbd>W A S D</kbd> or arrows to drive · <kbd>Space</kbd> boost · hold brake while steering to drift, release for a kick · <kbd>M</kbd> mute</p>
+  </div>
+</section>
+
+<section id="hud" hidden>
+  <div class="tl"><small>PLACE</small><strong id="place">1<em>/4</em></strong></div>
+  <div class="tr"><strong id="clock">0:00.000</strong><small id="lap">LAP 1 / 3</small></div>
+  <div class="br"><strong id="speed">0</strong><small>KM/H</small>
+    <div class="bar"><i id="energy"></i></div><div class="bar thin"><i id="charge"></i></div></div>
+  <div id="cue"></div>
+</section>
+
+<div id="countdown" hidden></div>
+
+<section id="results" hidden>
+  <div class="panel">
+    <h2 id="resultTitle"></h2>
+    <ol id="resultList"></ol>
+    <div class="row"><button id="again" class="primary">Race again</button><button id="toLobby">Back to lobby</button></div>
+    <p id="resultNote" class="note" role="status"></p>
+  </div>
+</section>
+
+<div id="fatal" hidden></div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
